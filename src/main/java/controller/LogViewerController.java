@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -13,9 +14,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import cmn.util.common.util.NullUtil;
-import cmn.util.common.util.PropertyUtil;
-import cmn.util.spring.SpringBeanSupport;
+import cmn.spring.common.util.NullUtil;
+import cmn.spring.common.util.PropertyUtil;
+import cmn.spring.common.util.SpringBeanSupport;
 
 
 @Controller
@@ -25,7 +26,7 @@ public class LogViewerController {
 	
 	
 	@RequestMapping(value = "/log/viewer.do")
-	public @ResponseBody Map<String, Object> logViewer(String logType) throws Exception {
+	public @ResponseBody Map<String, Object> logViewer(String logType, String logSize) throws Exception {
 		
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		
@@ -41,7 +42,13 @@ public class LogViewerController {
 		}
 		
 		String logFile = PropertyUtil.getString(logLocation);
-		int logLength =  PropertyUtil.getInt("log.read.line");
+		int logLength =  0;
+		if (!NullUtil.isNull(logSize)) {
+			logLength = Integer.parseInt(logSize);
+		}
+		else {
+			logLength =  PropertyUtil.getInt("log.read.line");
+		}
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Read log file :: {}", logFile);
@@ -102,3 +109,4 @@ public class LogViewerController {
 		return resultMap;
 	}
 }
+
