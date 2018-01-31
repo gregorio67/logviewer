@@ -72,22 +72,24 @@
 
 	$(document).ready(function() {
 		
-//		var width = 1120;
+		$('#logSize').val(100);
 		var height = 600;
 		$('#logText').attr('readonly','readonly');
 		$('#logText').prop('readonly', true);
-//		$('#logText').css('width', width);
 		$('#logText').css('height', height);
 		var sendData="logType=" + $('#logType').val();
-		//var sendData = {"logType" : $('#logType').val()};
+
 		alert(sendData);
 		$("#btnSearch").click(function(e) {
 			debugger;
 			var targetURL = $("#system option:selected").val();
-			var sendData = {"logType" : $('#logType').val()};
-			alert(sendData);
-
-			alert(targetURL);
+			var logSize = $('#logSize').val();
+			if (logSize > 1000) {
+				alert("Log size should be less than 1000");
+				return false;
+			}
+			var sendData = {"logType" : $('#logType').val(), "logSize" : $('#logSize').val()};
+			//var sendData = "logType=" + $('#logType').val() + "&logSize=" + $('#logSize').val();
 		    e.preventDefault();
 		    $.ajax({
 		        type: "POST",
@@ -173,6 +175,12 @@
 			        <option value="error">ERROR</option>
 			        <option value="sql">SQL</option>
 			    </select>
+			</div>
+        	<div class="fieldName">
+	           	<label>LOG SIZE</label>
+ 			</div>
+			<div class="data">
+				<input type="text" id="logSize" title="Log size should be less than 1000" size="10"></input>
 			</div>
         	<div class="logbutton">
 	           	<button  id="btnSearch">Log Search</button>
