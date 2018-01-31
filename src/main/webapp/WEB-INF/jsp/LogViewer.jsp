@@ -15,45 +15,124 @@
     .overflow {
       height: 200px;
     }
+    
+	.container {
+	  display: inline-table;
+	  border:1px solid #cccccc;
+	  width:100%;
+	  padding-right: 14px;
+	  margin-top:5px;
+	  margin-bottom:5px;
+	  
+	}
+	.fieldName {
+	  display: table-cell;
+	  padding-right: 4px;
+	  padding-left:30px;
+	  font-family:Sans-serif; 
+	  font-size:0.9em;
+	  vertical-align:text-top;
+	  padding-bottom:10px;
+	}
+	.data {
+	  display: table-cell;
+	  padding-left:20px;
+	  font-family:Sans-serif; 
+	  font-size:0.9em;
+	  padding-bottom:15px;
+	}
+	.select {
+	  display: table-cell;
+	  padding-left:20px;
+	  font-family:Sans-serif; 
+	  font-size:0.9em;
+	  padding-bottom:15px;
+	}
+	
+	.logbutton {
+	  display: table-cell;
+	  padding-left:50px;
+	  font-family:Sans-serif; 
+	  font-size:0.9em;
+	  padding-bottom:70px;
+	  border:none;
+	  overflow:auto;
+	  margin:0px auto;
+	  padding-bottom:15px;
+	}
+	    
   </style>
 
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"></link>
-<link rel="stylesheet" href="/resources/demos/style.css" /></link>
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   
-<%@ include file="/WEB-INF/jsp/common/include/ruiCommon.jspf" %>
+<!-- %@ include file="/WEB-INF/jsp/common/include/ruiCommon.jspf" %-->
 <script type="text/javascript">
 
 	$(document).ready(function() {
 		
-		var width = 1120;
+//		var width = 1120;
 		var height = 600;
 		$('#logText').attr('readonly','readonly');
 		$('#logText').prop('readonly', true);
-		$('#logText').css('width', width);
+//		$('#logText').css('width', width);
 		$('#logText').css('height', height);
-		
+		var sendData="logType=" + $('#logType').val();
+		//var sendData = {"logType" : $('#logType').val()};
+		alert(sendData);
 		$("#btnSearch").click(function(e) {
 			debugger;
 			var targetURL = $("#system option:selected").val();
+			var sendData = {"logType" : $('#logType').val()};
+			alert(sendData);
+
 			alert(targetURL);
 		    e.preventDefault();
 		    $.ajax({
 		        type: "POST",
 		        url: targetURL,
 		        crossDomain : true,
+		        data : sendData,
 		        dataType : "json",
 		        success: function(result) {
-		            alert(result.log);
 		            $("#logText").val(result.log);
 		        },
 		        error: function(result) {
-		            alert(result.log);
+		        	$("#logText").val(result.log);
 		        }
 		    });
 		});
+		
+		getSystemInfo();
 	});
+	
+	function getSystemInfo() {
+		$('#system').empty();
+		debugger;
+		var len = document.URL.indexOf("ibm");
+		var curURL = document.URL.substring(0,len) + "ibm";
+		var targetURL =  curURL + "/log/systemInfo.do";
+		$.ajax({
+	        type: "POST",
+	        url: targetURL,
+	        crossDomain : true,
+	        dataType : "json",
+	        success: function(result) {
+	        	$.each(result, function (key, value) {
+	        		debugger;
+	        	    $('#system').append($('<option>', { 
+	        	        value: value,
+	        	        text : key 
+	        	    }));
+	        	});
+	        },
+	        error: function(result) {
+	        	$("#logText").val(result.log);
+	        }
+	    });
+		
+	}
 
 </script>
 </head>
@@ -70,36 +149,42 @@
             </ul>
         </div>
 	</div>
-	<div class="LblockSearch">
+	<div class="container">
         <form action="">
-            <table summary="">
-                <tbody>
-                    <tr>
-                    	<th>
-                    	</th>
-                        <th>
-                        	<label for="systemname">SYSTEM</label>
-                            <select name="system" id="system">
-						        <option value="http://localhost:7070/ibm/log/viewer.do">PORTAL-WAS1</option>
-						        <option value="http://localhost:7070/ibm/log/viewer.do">IBM-WAS1</option>
-						        <option value="http://localhost:7070/ibm/log/viewer.do">DSC-WAS1</option>
-						        <option value="http://localhost:7070/ibm/log/viewer.do">INF-WAS1</option>
-						    </select>
-                        </th>
-                        <th>
-                        	<button class="ui-button ui-widget ui-corner-all" id="btnSearch">Log Search</button>
-                        </th>                   
-                    </tr>
-                </tbody>
-            </table>
-		</form>
+        	<div class="fieldName">
+	       		<label>SYSTEM</label>
+        	</div>
+        	<div class="select">
+	            <select name="system" id="system">
+	            <!-- 
+	        		<option value="http://localhost:7070/ibm/log/viewer.do">PORTAL-WAS1</option>
+					<option value="http://localhost:7070/ibm/log/viewer.do">IBM-WAS1</option>
+					<option value="http://localhost:7070/ibm/log/viewer.do">DSC-WAS1</option>
+					<option value="http://localhost:7070/ibm/log/viewer.do">INF-WAS1</option>
+				-->
+				</select>
+        	</div>
+        	<div class="fieldName">
+	           	<label>LOG TYPE</label>
+ 			</div>
+        	<div class="select">
+	            <select name="logType" id="logType">
+			        <option value="app">APP</option>
+			        <option value="error">ERROR</option>
+			        <option value="sql">SQL</option>
+			    </select>
+			</div>
+        	<div class="logbutton">
+	           	<button  id="btnSearch">Log Search</button>
+	        </div>
+ 		</form>
 	</div>
 
-	<div><H2>LOG</H2></div>
+	<div><H2 style="height:100%;padding:5px; margin-top:10px; font-family:Sans-serif; font-size:1.2em;">LOG Contents</H2></div>
 
 	<div class="LblockBlank Lclear">
 		<div id="logArea" >
-			<textarea id="logText" class="ui-corner-all ui-widget-content" style="height:100%;padding:5px; margin-top:50px; font-family:Sans-serif; font-size:1.2em;"></textarea>
+			<textarea id="logText" class="ui-corner-all ui-widget-content" style="width=100%;height:100%;padding:5px; margin-top:10px; font-family:Sans-serif; font-size:1.2em;"></textarea>
 		</div>
 	</div>		
 </div>
