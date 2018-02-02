@@ -72,17 +72,25 @@
 
 	$(document).ready(function() {
 		
-		$('#logSize').val(100);
 		var height = 600;
+
+		$('#logSize').val(100);
 		$('#logText').attr('readonly','readonly');
 		$('#logText').prop('readonly', true);
 		$('#logText').css('height', height);
 		var sendData="logType=" + $('#logType').val();
 
-		alert(sendData);
+		/**
+		* When clicked Log search button, call url with selected option value.
+		**/
 		$("#btnSearch").click(function(e) {
+		    e.preventDefault();
 			debugger;
+	    
+			$('#logText').val("");
+
 			var targetURL = $("#system option:selected").val();
+			
 			var logSize = $('#logSize').val();
 			if (logSize > 1000) {
 				alert("Log size should be less than 1000");
@@ -90,25 +98,46 @@
 			}
 			var sendData = {"logType" : $('#logType').val(), "logSize" : $('#logSize').val()};
 			//var sendData = "logType=" + $('#logType').val() + "&logSize=" + $('#logSize').val();
-		    e.preventDefault();
 		    $.ajax({
 		        type: "POST",
 		        url: targetURL,
 		        crossDomain : true,
 		        data : sendData,
-		        dataType : "json",
-		        success: function(result) {
-		            $("#logText").val(result.log);
-		        },
-		        error: function(result) {
-		        	$("#logText").val(result.log);
-		        }
+		        jsonpCallback : "logCallBack",
+		        dataType : "jsonp",  //Cross domain
+		        contentType: "application/json"
+//		        success: function(result) {
+//		        	alert(result);
+//		        	debugger;
+//		        	$.each(result, function (key, value) {
+//		        		$("#logText").val(value);	
+//		        	});
+//		        },
+//		        error: function(result) {
+//		        	debugger;
+//		        	alert(result.log)
+//		        	$("#logText").val(result.log);
+//		        }
 		    });
 		});
 		
 		getSystemInfo();
 	});
 	
+	function logCallBack(result) {
+		debugger;
+		var lastIdx = result.string.lastIndexOf("}") - 2;
+		var firstIdx = result.string.indexOf(":") + 2;
+		var logText = result.string.substring(firstIdx, lastIdx);
+		alert(logText);
+
+		$("#logText").val(logText);
+		
+	}
+	/**
+	* This function read url from ibm server
+	* And generate select options
+	**/
 	function getSystemInfo() {
 		$('#system').empty();
 		debugger;
@@ -122,7 +151,6 @@
 	        dataType : "json",
 	        success: function(result) {
 	        	$.each(result, function (key, value) {
-	        		debugger;
 	        	    $('#system').append($('<option>', { 
 	        	        value: value,
 	        	        text : key 
