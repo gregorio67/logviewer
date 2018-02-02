@@ -33,6 +33,9 @@ public class LogViewerController {
 	public ModelAndView logViewer(String logType, String logSize, String callback) throws Exception {
 		
 		Map<String, Object> resultMap = new HashMap<String, Object>();
+		/** Cross domain Not tested**/
+//		response.addHeader("Access-Control-Allow-Origin", "*");  
+//		response.setHeader("Access-Control-Allow-Headers", "origin, x-requested-with, content-type, accept");	
 		
 		/** Log file location **/
 //		String logType = params.get("logType") != null ? String.valueOf(params.get("logType")) : "";
