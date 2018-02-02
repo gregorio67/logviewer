@@ -13,20 +13,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
-import cmn.spring.common.util.NullUtil;
-import cmn.spring.common.util.PropertyUtil;
-import cmn.spring.common.util.SpringBeanSupport;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ncd.spring.common.util.NullUtil;
+import ncd.spring.common.util.PropertyUtil;
+import ncd.spring.common.util.SpringBeanSupport;
 
 @Controller
 public class LogViewerController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LogViewerController.class);
 	
+	/** ObjectMapper **/
+	private static ObjectMapper objectMapper = new ObjectMapper();
 	
 	@RequestMapping(value = "/log/viewer.do")
-	public @ResponseBody Map<String, Object> logViewer(String logType, String logSize) throws Exception {
+	public ModelAndView logViewer(String logType, String logSize, String callback) throws Exception {
 		
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		
@@ -54,11 +58,23 @@ public class LogViewerController {
 			LOGGER.debug("Read log file :: {}", logFile);
 		}
 
+		ModelAndView mav = new ModelAndView("ajaxMultiDataView");
+		String result = null;
 		/** Check log file exists **/
 		File file = new File(logFile);
 		if (!file.exists()) {
 			resultMap.put("log", "Log file not found :: " + logFile);
-			return resultMap;
+			StringBuilder sb = new StringBuilder();
+			result = sb.append(callback).append("(").append(map2Json(resultMap)).append(")").toString();
+			return mav.addObject(result);
+		}
+		
+		if (!file.canRead()) {
+			resultMap.put("log", "Log file can't read :: " + logFile);
+			StringBuilder sb = new StringBuilder();
+			result = sb.append(callback).append("(").append(map2Json(resultMap)).append(")").toString();
+			return mav.addObject(result);
+			
 		}
 
 		BufferedReader in = null;
@@ -67,28 +83,41 @@ public class LogViewerController {
 		
 		try {
 			in = new BufferedReader (new InputStreamReader (new ReverseReader(file)));
-			while(true) {
+			
+			boolean isLoop = true;
+			while(isLoop) {
 				String contents = in.readLine();
 				logContent.append(contents).append("\n");
 				if (idx++ >= logLength) {
-					break;
+					isLoop = false;
 				}
 			}
 		}
 		catch(Exception logex) {
-			LOGGER.error("Log file read error :: {}", logex.getMessage());
+			logex.printStackTrace();
 		}
 		finally {
-			in.close();
+			if (in != null) {
+				in.close();
+			}
 		}
 		
-		if (NullUtil.isNull(logContent) ) {
+		if (logContent.length() <= 0) {
 			resultMap.put("log", "No Contents");			
+			StringBuilder sb = new StringBuilder();
+			result = sb.append(callback).append("(").append(map2Json(resultMap)).append(")").toString();
+			return mav.addObject(result);
+
 		}
 		else {
 			resultMap.put("log", logContent.toString());			
+			StringBuilder sb = new StringBuilder();
+			result = sb.append(callback).append("(").append(map2Json(resultMap)).append(")").toString();
+
 		}
-		return resultMap;
+		LOGGER.info("result :: {}", result);
+		mav.addObject(result);
+		return mav;
 	}
 	
 	@RequestMapping(value = "/log/systemInfo.do")
@@ -108,5 +137,21 @@ public class LogViewerController {
 		
 		return resultMap;
 	}
+	
+	private <K,V> String map2Json(Map<K, V> dataMap) throws Exception {
+		String jsonData = null;
+
+		try {
+			jsonData = objectMapper.writeValueAsString(dataMap);
+		}
+		catch(Exception e) {
+			LOGGER.error(e.getMessage());
+			throw new Exception(e.getMessage(), e);
+		}
+
+		return jsonData;
+	}
+
 }
+
 
