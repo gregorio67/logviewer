@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org/DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="log.tailer">
+
+	<!-- Transaction Log sequence -->
+	<select id="selTransLogSeq"  resultType="int">
+		SELECT SQ_TRANS_LOG_01.NEXTVAL FROM DUAL
+	</select>
+	
+	<select id="selLog" parameterType="java.util.Map" resultType="dymn.log.mybatis.CamelMap">
+		SELECT	LOG_DATE,	
+				LOG_TIME,		
+				WAS_THREAD,		
+				LOG_LEVEL,	
+				LOG_METHOD,	
+				DETAIL_LOG
+		FROM APP_LOG
+		WHERE 1 = 1
+		<if test = 'logDate != "" and logDate != null'>
+		<![CDATA[
+			AND LOG_DATE >= #{logDate}
+			AND LOG_DATE <= #{logDate}
+		]]>	
+		</if>
+		<if test = 'logTime != "" and logTime != null'>
+		<![CDATA[
+			AND LOG_TIME >= #{logTime}
+			AND LOG_TIME <= #{logTime}
+		]]>	
+		</if>
+		ORDER BY LOG_DATE DESC, LOG_TIME DESC
+	</select>
+
+	<insert id="insLog" parameterType="java.util.Map">
+		INSERT
+		INTO APP_LOG (
+				LOG_DATE,	
+				LOG_TIME,		
+				WAS_THREAD,		
+				LOG_LEVEL,	
+				CALL_METHOD,	
+				DETAIL_LOG)
+		VALUES(	
+				#{logDate},
+				#{logTime},
+				#{wasThread},
+				#{logLevel},
+				#{callMethod},
+				#{detailLog})
+	</insert>
+
+	<!-- Transaction Log Update -->
+	<update id="updLog" parameterType="java.util.Map">
+		UPDATE TRANS_LOG
+		SET END_TIME = #{endTime},
+			CALL_START_TIME = #{callStartTime},
+			CALL_END_TIME = #{callEndTime},
+			STATUS = #{status},	
+			EXIT_CODE = #{exitCode},
+			EXIT_MESSAGE = #{exitMessage},
+			RESPONSE_DATA = #{responseData}
+		WHERE TRAN_SEQ = #{tranSeq}
+	</update>
+	
+	
+</mapper>
